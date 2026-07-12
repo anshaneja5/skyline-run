@@ -31,10 +31,15 @@ const audio = new GameAudio();
 // mute button lives outside HUD so it works on every screen
 const muteBtn = document.createElement('button');
 muteBtn.id = 'mute-btn';
-muteBtn.textContent = '🔊';
+if (localStorage.getItem('skyline-muted') === '1') {
+  audio.setMuted(true); // applies once the AudioContext is created
+}
+muteBtn.textContent = audio.muted ? '🔇' : '🔊';
 muteBtn.addEventListener('click', () => {
   audio.init();
-  muteBtn.textContent = audio.toggleMute() ? '🔇' : '🔊';
+  const muted = audio.toggleMute();
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  localStorage.setItem('skyline-muted', muted ? '1' : '0');
 });
 uiRoot.appendChild(muteBtn);
 

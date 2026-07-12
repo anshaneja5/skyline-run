@@ -32,11 +32,15 @@ export class GameAudio {
   }
 
   toggleMute(): boolean {
-    this._muted = !this._muted;
+    this.setMuted(!this._muted);
+    return this._muted;
+  }
+
+  setMuted(muted: boolean) {
+    this._muted = muted;
     if (this.master && this.ctx) {
       this.master.gain.setTargetAtTime(this._muted ? 0 : 0.55, this.ctx.currentTime, 0.05);
     }
-    return this._muted;
   }
 
   setTimeScale(scale: number) {
