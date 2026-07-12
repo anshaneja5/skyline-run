@@ -180,6 +180,26 @@ kbd {
   display: inline-block;
 }
 
+.gh-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #2b3a55;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.gh-link:hover {
+  background: #3d5170;
+  transform: translateY(-1px);
+}
+
 .demo-badge {
   display: inline-block;
   margin-top: 10px;

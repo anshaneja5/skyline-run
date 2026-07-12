@@ -27,9 +27,12 @@ export async function fetchContributions(username: string): Promise<Contribution
     }
     throw new Error(message);
   }
-  const days: ContributionDay[] = await res.json();
+  let days: ContributionDay[] = await res.json();
   if (!Array.isArray(days) || days.length === 0) {
     throw new Error('No contribution data returned.');
   }
+  // the flight starts at the first day with commits, not at empty runway months
+  const firstCommitDay = days.findIndex((d) => d.count > 0);
+  if (firstCommitDay > 0) days = days.slice(firstCommitDay);
   return { days, demo: res.headers.get('X-Demo-Data') === '1' };
 }
