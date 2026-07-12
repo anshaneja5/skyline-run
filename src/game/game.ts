@@ -6,6 +6,7 @@ import type { GameAssets } from './assets';
 import { CollisionSystem } from './collisions';
 import { Scoring, NEAR_MISS_DISTANCE } from './scoring';
 import { Input } from './input';
+import { tilt } from './tilt';
 import { GameAudio } from './audio';
 import type { Hud } from '../ui/hud';
 
@@ -71,6 +72,7 @@ export class Game {
   };
 
   start() {
+    tilt.recalibrate(); // current phone angle becomes level flight
     this.audio.startEngine();
     this.audio.startMusic();
     this.lastTime = performance.now();

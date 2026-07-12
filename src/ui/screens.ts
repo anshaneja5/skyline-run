@@ -89,7 +89,7 @@ export class Screens {
           <b>Boost</b> hold <kbd>Shift</kbd> &nbsp; <b>Slow-mo</b> hold <kbd>Space</kbd><br/>
           <b>Pause</b> <kbd>Esc</kbd> / <kbd>P</kbd>
         </div>
-        <div class="touch-hint">📱 Touch left/right half of the screen to steer, two-finger tap to toggle boost.</div>
+        <div class="touch-hint">📱 Tilt your phone to steer &amp; climb (hold it comfy — that angle becomes level).<br/>Or touch: left/right half steers, top/bottom third climbs/dives. Two-finger tap = boost.</div>
         <div class="color-legend">${colorLegend}</div>
       </div>`);
     const input = screen.querySelector<HTMLInputElement>('#username-input')!;

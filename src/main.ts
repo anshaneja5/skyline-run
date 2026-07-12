@@ -5,6 +5,7 @@ import type { ContributionDay } from './game/types';
 import { buildWorld, type World } from './game/world';
 import { loadAssets, type GameAssets } from './game/assets';
 import { Game } from './game/game';
+import { tilt } from './game/tilt';
 import { GameAudio } from './game/audio';
 import { Hud } from './ui/hud';
 import { Screens } from './ui/screens';
@@ -149,6 +150,8 @@ function showStart(errorMsg?: string) {
 
 async function takeOff(username: string) {
   audio.init(); // user gesture — safe to create AudioContext now
+  // gyroscope steering on phones; must be requested inside the tap gesture (iOS)
+  if (window.matchMedia('(pointer: coarse)').matches) void tilt.requestEnable();
 
   if (username.toLowerCase() !== currentUser.toLowerCase() || currentDays.length === 0) {
     const setProgress = screens.loading(`Fetching @${username}'s year of commits…`);

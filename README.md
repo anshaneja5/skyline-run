@@ -29,6 +29,7 @@ you'll see exactly which date and commit count killed you. Survive the whole yea
 | `Shift` (hold) | boost — 1.6× speed, FOV widens |
 | `Space` (hold) | slow-mo — 0.45× time |
 | `Esc` / `P` | pause |
+| Tilt (phones) | roll the phone to steer, pitch it like a yoke to climb/dive — the angle you hold it at on take-off becomes level flight |
 | Touch | left/right half steers, top/bottom third climbs/dives, two-finger tap toggles boost |
 
 ## Setup

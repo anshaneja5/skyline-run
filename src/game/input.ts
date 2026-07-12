@@ -1,3 +1,5 @@
+import { tilt } from './tilt';
+
 export interface InputState {
   steer: number; // -1 left .. 1 right
   climb: number; // -1 dive .. 1 climb
@@ -92,8 +94,9 @@ export class Input {
     if (k.has('KeyD') || k.has('ArrowRight')) steer += 1;
     if (k.has('KeyW') || k.has('ArrowUp')) climb += 1;
     if (k.has('KeyS') || k.has('ArrowDown')) climb -= 1;
-    if (steer === 0) steer = this.touchSteer;
-    if (climb === 0) climb = this.touchClimb;
+    // keyboard wins; then gyroscope tilt (when enabled); touch zones as fallback
+    if (steer === 0) steer = tilt.enabled ? tilt.steer : this.touchSteer;
+    if (climb === 0) climb = tilt.enabled ? tilt.climb : this.touchClimb;
 
     return {
       steer,
