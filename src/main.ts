@@ -6,6 +6,7 @@ import { buildWorld, type World } from './game/world';
 import { loadAssets, type GameAssets } from './game/assets';
 import { Game } from './game/game';
 import { tilt } from './game/tilt';
+import { track } from './analytics';
 import { GameAudio } from './game/audio';
 import { Hud } from './ui/hud';
 import { Screens } from './ui/screens';
@@ -172,12 +173,20 @@ async function takeOff(username: string) {
   stopPreview();
   screens.clear();
   game?.dispose();
+  track('take_off', { flown_user: currentUser, demo_data: currentDemo });
   game = new Game(renderer, currentDays, assets, audio, hud, onGameEnd, onGamePause);
   game.start();
 }
 
 function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').RunStats }) {
   const isBest = saveBest(currentUser, end.stats.score);
+  track(end.kind === 'crash' ? 'crash' : 'year_survived', {
+    score: end.stats.score,
+    best_combo: end.stats.bestCombo,
+    days_survived: end.stats.daysSurvived,
+    pct_survived: Math.round((end.stats.daysSurvived / end.stats.totalDays) * 100),
+    new_best: isBest,
+  });
   const retry = () => takeOff(currentUser);
   const menu = () => {
     game?.dispose();
