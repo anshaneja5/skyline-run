@@ -34,7 +34,9 @@ export class Screens {
     this.root.appendChild(screen);
     this.current = screen;
     screen.querySelectorAll('.gh-link').forEach((a) =>
-      a.addEventListener('click', () => track('github_click'))
+      a.addEventListener('click', () =>
+        track(a.classList.contains('x-link') ? 'x_follow_click' : 'github_click')
+      )
     );
     return screen;
   }
@@ -81,10 +83,16 @@ export class Screens {
     ).join('');
     const screen = this.mount(`
       <div class="card">
-        <a class="gh-link gh-mini" href="https://github.com/anshaneja5/skyline-run" target="_blank" rel="noopener" title="Star Skyline Run on GitHub">
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-          Star ⭐
-        </a>
+        <div class="mini-row">
+          <a class="gh-link gh-mini" href="https://github.com/anshaneja5/skyline-run" target="_blank" rel="noopener" title="Star Skyline Run on GitHub">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            Star ⭐
+          </a>
+          <a class="gh-link x-link gh-mini" href="https://x.com/vedolos" target="_blank" rel="noopener" title="Follow @vedolos on X">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Follow
+          </a>
+        </div>
         <h1><span class="plane-emoji">✈️</span> Skyline Run</h1>
         <p class="subtitle">Fly through a year of your GitHub commits.<br/>Crash into a busy day and it's over.</p>
         ${opts.demo ? '<div class="demo-badge">⚠ demo data — set GITHUB_TOKEN in .env for real contributions</div><br/>' : ''}
@@ -102,7 +110,7 @@ export class Screens {
         <div class="touch-hint">📱 Tilt your phone to steer &amp; climb (hold it comfy — that angle becomes level).<br/>Or touch: left/right half steers, top/bottom third climbs/dives. Two-finger tap = boost.</div>
         <div class="color-legend">${colorLegend}</div>
         <div id="leaderboard-slot"></div>
-        ${this.ghLink('Star on GitHub — anshaneja5/skyline-run')}
+        ${this.socialRow('Star on GitHub ⭐', 'Follow @vedolos')}
       </div>`);
     const input = screen.querySelector<HTMLInputElement>('#username-input')!;
     const btn = screen.querySelector<HTMLButtonElement>('#takeoff-btn')!;
@@ -148,6 +156,17 @@ export class Screens {
   setStartError(msg: string) {
     const el = this.current?.querySelector<HTMLElement>('#start-error');
     if (el) el.textContent = msg;
+  }
+
+  private xLink(text: string): string {
+    return `<a class="gh-link x-link" href="https://x.com/vedolos" target="_blank" rel="noopener" title="Follow @vedolos on X">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        ${text}
+      </a>`;
+  }
+
+  private socialRow(starText: string, followText: string): string {
+    return `<div class="social-row">${this.ghLink(starText)}${this.xLink(followText)}</div>`;
   }
 
   private ghLink(text: string): string {
@@ -212,11 +231,11 @@ export class Screens {
         ${this.statsGrid(stats)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
         <div id="rank-slot"></div>
+        ${this.socialRow('Enjoyed it? Star ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
         </div>
-        ${this.ghLink('Enjoyed the flight? Star it on GitHub ⭐')}
       </div>`);
     screen.querySelector('#retry-btn')!.addEventListener('click', onRetry);
     screen.querySelector('#menu-btn')!.addEventListener('click', onMenu);
@@ -233,11 +252,11 @@ export class Screens {
         ${this.statsGrid(stats, timeStat)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
         <div id="rank-slot"></div>
+        ${this.socialRow('Survived? Star it ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
         </div>
-        ${this.ghLink('Survived the year? Star it on GitHub ⭐')}
       </div>`);
     screen.querySelector('#retry-btn')!.addEventListener('click', onRetry);
     screen.querySelector('#menu-btn')!.addEventListener('click', onMenu);
@@ -261,6 +280,7 @@ export class Screens {
           <button class="btn" id="resume-btn">Resume</button>
           <button class="btn secondary" id="quit-btn">Quit to menu</button>
         </div>
+        ${this.socialRow('Star on GitHub ⭐', 'Follow @vedolos')}
       </div>`);
     screen.querySelector('#resume-btn')!.addEventListener('click', onResume);
     screen.querySelector('#quit-btn')!.addEventListener('click', onQuit);

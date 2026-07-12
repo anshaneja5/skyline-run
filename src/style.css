@@ -279,14 +279,39 @@ kbd {
   transform: translateY(-1px);
 }
 
-.gh-mini {
+.mini-row {
   position: absolute;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.gh-mini {
   margin: 0;
   padding: 5px 11px;
   font-size: 0.72rem;
   gap: 5px;
+}
+
+.x-link {
+  background: #0f1419;
+}
+
+.x-link:hover {
+  background: #2c3640;
+}
+
+.social-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 4px;
+}
+
+.social-row .gh-link {
+  margin-top: 0;
 }
 
 .demo-badge {
