@@ -18,8 +18,22 @@ const fmtDate = (iso: string) =>
 
 export class Screens {
   private current: HTMLElement | null = null;
+  private starCount: number | null = null;
 
   constructor(private root: HTMLElement) {}
+
+  /** Live repo star count, shown inside every star button. */
+  setStars(count: number | null) {
+    this.starCount = count;
+    this.applyStars();
+  }
+
+  private applyStars() {
+    if (this.starCount === null || !this.current) return;
+    this.current.querySelectorAll<HTMLElement>('.star-count').forEach((el) => {
+      el.textContent = ` · ${this.starCount}`;
+    });
+  }
 
   clear() {
     this.current?.remove();
@@ -38,6 +52,7 @@ export class Screens {
         track(a.classList.contains('x-link') ? 'x_follow_click' : 'github_click')
       )
     );
+    this.applyStars();
     return screen;
   }
 
@@ -86,7 +101,7 @@ export class Screens {
         <div class="mini-row">
           <a class="gh-link gh-mini" href="https://github.com/anshaneja5/skyline-run" target="_blank" rel="noopener" title="Star Skyline Run on GitHub">
             <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-            Star ⭐
+            Star ⭐<span class="star-count"></span>
           </a>
           <a class="gh-link x-link gh-mini" href="https://x.com/vedolos" target="_blank" rel="noopener" title="Follow @vedolos on X">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -144,6 +159,7 @@ export class Screens {
           <img class="lb-avatar" src="https://github.com/${encodeURIComponent(e.username)}.png?size=48"
             alt="" loading="lazy" onerror="this.style.visibility='hidden'" />
           <span class="lb-name">${e.username}</span>
+          ${e.starred ? '<span class="lb-starred" title="starred the repo ⭐">⭐</span>' : ''}
           ${e.win ? '<span class="lb-win" title="survived the year">🏁</span>' : ''}
           <span class="lb-score">${(e.rating / 100).toFixed(1)}%</span>
         </a>`
@@ -165,14 +181,19 @@ export class Screens {
       </a>`;
   }
 
+  /** One-time "new best" star nudge, shown above the social row. */
+  private starNudge(): string {
+    return `<div class="star-nudge">🏆 New best! Enjoying Skyline Run? A <b>⭐ star</b> keeps the hangar open ↓</div>`;
+  }
+
   private socialRow(starText: string, followText: string): string {
     return `<div class="social-row">${this.ghLink(starText)}${this.xLink(followText)}</div>`;
   }
 
   private ghLink(text: string): string {
-    return `<a class="gh-link" href="https://github.com/anshaneja5/skyline-run" target="_blank" rel="noopener">
+    return `<a class="gh-link" href="https://github.com/anshaneja5/skyline-run" target="_blank" rel="noopener" data-star
         <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-        ${text}
+        ${text}<span class="star-count"></span>
       </a>`;
   }
 
@@ -217,7 +238,8 @@ export class Screens {
     isBest: boolean,
     week: { date: string; count: number; crash: boolean }[],
     onRetry: () => void,
-    onMenu: () => void
+    onMenu: () => void,
+    nudge = false
   ) {
     const b = stats.crashedInto!;
     const screen = this.mount(`
@@ -231,6 +253,7 @@ export class Screens {
         ${this.statsGrid(stats)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
         <div id="rank-slot"></div>
+        ${nudge ? this.starNudge() : ''}
         ${this.socialRow('Enjoyed it? Star ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
@@ -241,7 +264,7 @@ export class Screens {
     screen.querySelector('#menu-btn')!.addEventListener('click', onMenu);
   }
 
-  win(stats: RunStats, isBest: boolean, onRetry: () => void, onMenu: () => void) {
+  win(stats: RunStats, isBest: boolean, onRetry: () => void, onMenu: () => void, nudge = false) {
     const timeStat = `<div class="stat" style="grid-column: span 2"><div class="value">${fmtTime(
       stats.flightTimeMs
     )}</div><div class="label">Flight time</div></div>`;
@@ -252,6 +275,7 @@ export class Screens {
         ${this.statsGrid(stats, timeStat)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
         <div id="rank-slot"></div>
+        ${nudge ? this.starNudge() : ''}
         ${this.socialRow('Survived? Star it ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>

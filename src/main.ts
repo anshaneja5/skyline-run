@@ -1,6 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
-import { fetchConfig, fetchContributions, fetchLeaderboard, submitScore } from './api';
+import { fetchConfig, fetchContributions, fetchLeaderboard, fetchStars, submitScore } from './api';
 import type { ContributionDay } from './game/types';
 import { buildWorld, type World } from './game/world';
 import { loadAssets, type GameAssets } from './game/assets';
@@ -198,15 +198,19 @@ function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').R
     game = null;
     showStart();
   };
+  // one-time star nudge at the peak moment: a new personal best
+  const nudge = isBest && end.stats.score > 0 && !localStorage.getItem('skyline-star-nudged');
+  if (nudge) localStorage.setItem('skyline-star-nudged', '1');
+
   if (end.kind === 'crash') {
     const crashDate = end.stats.crashedInto!.date;
     const idx = currentDays.findIndex((d) => d.date === crashDate);
     const week = currentDays
       .slice(Math.max(idx - 3, 0), idx + 4)
       .map((d) => ({ date: d.date, count: d.count, crash: d.date === crashDate }));
-    screens.crash(end.stats, isBest, week, retry, menu);
+    screens.crash(end.stats, isBest, week, retry, menu, nudge);
   } else {
-    screens.win(end.stats, isBest, retry, menu);
+    screens.win(end.stats, isBest, retry, menu, nudge);
   }
 
   // global leaderboard (skip demo data — those runs aren't comparable)
@@ -240,5 +244,21 @@ function onGamePause(paused: boolean) {
     screens.clear();
   }
 }
+
+// live star count for all the star buttons
+fetchStars().then((stars) => screens.setStars(stars));
+
+// hello, fellow console-opener
+console.log(
+  `%c
+      __|__
+--o--o--(_)--o--o--
+   SKYLINE RUN ✈️
+
+You opened the console — you're one of us.
+The whole game is open source:
+⭐ https://github.com/anshaneja5/skyline-run`,
+  'color:#d94a38;font-weight:bold'
+);
 
 boot();

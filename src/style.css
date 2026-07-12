@@ -280,11 +280,10 @@ kbd {
 }
 
 .mini-row {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   display: flex;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
+  margin: -6px 0 12px;
 }
 
 .gh-mini {
@@ -312,6 +311,26 @@ kbd {
 
 .social-row .gh-link {
   margin-top: 0;
+}
+
+.star-count {
+  opacity: 0.85;
+  font-weight: 800;
+}
+
+.lb-starred {
+  font-size: 0.7rem;
+}
+
+.star-nudge {
+  margin: 12px 0 0;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff3d0, #ffe3b0);
+  border: 2px solid #f0c065;
+  color: #7a5a12;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .demo-badge {

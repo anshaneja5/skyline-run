@@ -22,6 +22,17 @@ export interface LeaderboardEntry {
   bestCombo?: number;
   pct?: number;
   win?: boolean;
+  starred?: boolean; // verified stargazer of the repo
+}
+
+export async function fetchStars(): Promise<number | null> {
+  try {
+    const res = await fetch('/api/stars');
+    if (!res.ok) return null;
+    return (await res.json()).stars ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export interface SubmitResult {

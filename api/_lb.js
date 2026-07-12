@@ -4,6 +4,7 @@
 // back to a per-instance in-memory store (fine for dev, ephemeral in prod).
 
 import { getContributions } from './_lib.js';
+import { getStargazers } from './_gh.js';
 
 const SCORES_KEY = 'lb:scores';
 const META_PREFIX = 'lb:u:';
@@ -117,6 +118,9 @@ export async function submitScore(username, run, ip) {
 }
 
 export async function topScores(limit = 20) {
+  const stargazers = await getStargazers();
+  const withBadge = (entries) =>
+    entries.map((e) => (stargazers.has(e.username) ? { ...e, starred: true } : e));
   if (hasRedis) {
     const flat = await redis('ZRANGE', SCORES_KEY, '0', String(limit - 1), 'REV', 'WITHSCORES');
     const entries = [];
@@ -132,10 +136,12 @@ export async function topScores(limit = 20) {
         /* meta is decorative */
       }
     }
-    return entries;
+    return withBadge(entries);
   }
-  return [...mem.scores.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([username, rating]) => ({ username, rating, ...(mem.meta.get(username) || {}) }));
+  return withBadge(
+    [...mem.scores.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([username, rating]) => ({ username, rating, ...(mem.meta.get(username) || {}) }))
+  );
 }
