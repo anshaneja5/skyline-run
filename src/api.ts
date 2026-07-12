@@ -17,7 +17,8 @@ export async function fetchConfig(): Promise<{ defaultUser: string; demo: boolea
 
 export interface LeaderboardEntry {
   username: string;
-  score: number;
+  rating: number; // basis points of the city's theoretical max (0..10000)
+  score?: number;
   bestCombo?: number;
   pct?: number;
   win?: boolean;
@@ -25,7 +26,7 @@ export interface LeaderboardEntry {
 
 export interface SubmitResult {
   rank: number;
-  best: number;
+  rating: number;
   improved: boolean;
 }
 

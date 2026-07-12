@@ -140,6 +140,9 @@ function yearStats() {
 function showStart(errorMsg?: string) {
   screens.start({
     defaultUser: currentUser,
+    // each visitor's own last-flown name — never someone else's city by default,
+    // so scores stop landing under the site owner's username
+    lastUser: localStorage.getItem('skyline-last-user') || '',
     demo: currentDemo,
     bestScore: getBest(currentUser),
     yearStats: yearStats(),
@@ -170,6 +173,7 @@ async function takeOff(username: string) {
     }
   }
   currentUser = username;
+  localStorage.setItem('skyline-last-user', username);
 
   stopPreview();
   screens.clear();
@@ -213,7 +217,7 @@ function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').R
       daysSurvived: end.stats.daysSurvived,
       flightTimeMs: end.stats.flightTimeMs,
     }).then((result) => {
-      if (result) screens.showRank(result.rank, result.improved);
+      if (result) screens.showRank(result.rank, result.rating, result.improved);
     });
   }
 }

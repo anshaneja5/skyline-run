@@ -74,7 +74,7 @@ export async function validateRun(username, run) {
   // fastest possible full-boost pace is ~8.3 days/second — require slower
   if (run.flightTimeMs < run.daysSurvived * 100) return { ok: false, reason: 'impossible speed' };
   if (run.bestCombo < 1 || run.bestCombo > 8) return { ok: false, reason: 'impossible combo' };
-  return { ok: true, totalDays: days.length };
+  return { ok: true, totalDays: days.length, maxScore };
 }
 
 export async function submitScore(username, run, ip) {
@@ -84,32 +84,36 @@ export async function submitScore(username, run, ip) {
   if (!check.ok) return { status: 422, body: { error: `Rejected: ${check.reason}.` } };
 
   const user = username.toLowerCase();
+  // pilot rating: fraction of THIS city's theoretical max that was scored.
+  // Skill-normalized, so big contribution graphs don't buy leaderboard spots.
+  // Basis points (0..10000) keep the sorted set integer-friendly.
+  const rating = Math.min(Math.round((run.score / Math.max(check.maxScore, 1)) * 10000), 10000);
   const meta = {
     score: run.score,
+    rating,
     bestCombo: run.bestCombo,
     pct: Math.round((run.daysSurvived / check.totalDays) * 100),
     win: run.daysSurvived >= check.totalDays,
     at: Date.now(),
   };
 
-  let best;
   if (hasRedis) {
-    // ZADD GT: only update when the new score is greater
-    await redis('ZADD', SCORES_KEY, 'GT', String(run.score), user);
-    best = Number(await redis('ZSCORE', SCORES_KEY, user));
-    if (best === run.score) await redis('SET', META_PREFIX + user, JSON.stringify(meta));
+    // ZADD GT: only update when the new rating is greater
+    await redis('ZADD', SCORES_KEY, 'GT', String(rating), user);
+    const best = Number(await redis('ZSCORE', SCORES_KEY, user));
+    if (best === rating) await redis('SET', META_PREFIX + user, JSON.stringify(meta));
     const rank = await redis('ZREVRANK', SCORES_KEY, user);
-    return { status: 200, body: { rank: rank + 1, best, improved: best === run.score } };
+    return { status: 200, body: { rank: rank + 1, rating: best, improved: best === rating } };
   }
 
   const prev = mem.scores.get(user) ?? -1;
-  if (run.score > prev) {
-    mem.scores.set(user, run.score);
+  if (rating > prev) {
+    mem.scores.set(user, rating);
     mem.meta.set(user, meta);
   }
-  best = mem.scores.get(user);
+  const best = mem.scores.get(user);
   const rank = [...mem.scores.values()].filter((s) => s > best).length + 1;
-  return { status: 200, body: { rank, best, improved: run.score > prev } };
+  return { status: 200, body: { rank, rating: best, improved: rating > prev } };
 }
 
 export async function topScores(limit = 20) {
@@ -117,7 +121,7 @@ export async function topScores(limit = 20) {
     const flat = await redis('ZRANGE', SCORES_KEY, '0', String(limit - 1), 'REV', 'WITHSCORES');
     const entries = [];
     for (let i = 0; i < flat.length; i += 2) {
-      entries.push({ username: flat[i], score: Number(flat[i + 1]) });
+      entries.push({ username: flat[i], rating: Number(flat[i + 1]) });
     }
     // attach meta in one pipeline-ish pass
     for (const e of entries) {
@@ -133,5 +137,5 @@ export async function topScores(limit = 20) {
   return [...mem.scores.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([username, score]) => ({ username, score, ...(mem.meta.get(username) || {}) }));
+    .map(([username, rating]) => ({ username, rating, ...(mem.meta.get(username) || {}) }));
 }

@@ -56,6 +56,7 @@ export class Screens {
 
   start(opts: {
     defaultUser: string;
+    lastUser: string;
     demo: boolean;
     bestScore: number | null;
     yearStats?: { total: number; busiestCount: number; busiestDate: string; streak: number };
@@ -88,7 +89,7 @@ export class Screens {
         <p class="subtitle">Fly through a year of your GitHub commits.<br/>Crash into a busy day and it's over.</p>
         ${opts.demo ? '<div class="demo-badge">⚠ demo data — set GITHUB_TOKEN in .env for real contributions</div><br/>' : ''}
         ${profile}
-        <input type="text" id="username-input" value="${opts.defaultUser}" placeholder="GitHub username" spellcheck="false" autocomplete="off" />
+        <input type="text" id="username-input" value="${opts.lastUser}" placeholder="your GitHub username" spellcheck="false" autocomplete="off" />
         <div class="error-text" id="start-error"></div>
         <button class="btn" id="takeoff-btn">Take off ✈</button>
         ${opts.bestScore !== null ? `<div class="best-score">Best score: <b>${opts.bestScore.toLocaleString()}</b></div>` : ''}
@@ -129,17 +130,19 @@ export class Screens {
       .slice(0, 5)
       .map(
         (e, i) => `<a class="lb-row" href="https://github.com/${encodeURIComponent(e.username)}"
-            target="_blank" rel="noopener" title="View @${e.username} on GitHub">
+            target="_blank" rel="noopener"
+            title="@${e.username}${e.score ? ` — ${e.score.toLocaleString()} pts` : ''}">
           <span class="lb-rank">${medals[i] ?? i + 1}</span>
           <img class="lb-avatar" src="https://github.com/${encodeURIComponent(e.username)}.png?size=48"
             alt="" loading="lazy" onerror="this.style.visibility='hidden'" />
           <span class="lb-name">${e.username}</span>
           ${e.win ? '<span class="lb-win" title="survived the year">🏁</span>' : ''}
-          <span class="lb-score">${e.score.toLocaleString()}</span>
+          <span class="lb-score">${(e.rating / 100).toFixed(1)}%</span>
         </a>`
       )
       .join('');
-    slot.innerHTML = `<div class="leaderboard"><div class="lb-title">🌍 Global leaderboard</div>${rows}</div>`;
+    slot.innerHTML = `<div class="leaderboard"><div class="lb-title">🌍 Global leaderboard</div>
+      <div class="lb-sub">pilot rating — % of your own city's max score</div>${rows}</div>`;
   }
 
   setStartError(msg: string) {
@@ -184,10 +187,10 @@ export class Screens {
   }
 
   /** Global-rank line on end screens, filled in when the submit resolves. */
-  showRank(rank: number, improved: boolean) {
+  showRank(rank: number, rating: number, improved: boolean) {
     const el = this.current?.querySelector<HTMLElement>('#rank-slot');
     if (!el) return;
-    el.innerHTML = `<div class="rank-badge">🌍 Global rank <b>#${rank}</b>${improved ? '' : ' (your best run)'}</div>`;
+    el.innerHTML = `<div class="rank-badge">🌍 Global rank <b>#${rank}</b> · pilot rating <b>${(rating / 100).toFixed(1)}%</b>${improved ? '' : ' (best run)'}</div>`;
   }
 
   crash(
