@@ -353,7 +353,7 @@ kbd {
 
 .hud-dash {
   position: absolute;
-  bottom: 12px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -365,6 +365,8 @@ kbd {
   padding: 10px 22px;
   font-size: 0.9rem;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
 }
 
 .hud-dash .gauge {
@@ -377,14 +379,16 @@ kbd {
 }
 
 .speed-gauge .dial {
-  width: 70px;
-  height: 42px;
+  width: 64px;
+  height: 40px;
   display: block;
-  margin: 0 auto -6px;
+  margin: 0 auto 1px;
+  overflow: visible;
 }
 
 .speed-gauge .g-value {
-  font-size: 0.85rem !important;
+  font-size: 0.8rem !important;
+  line-height: 1;
 }
 
 .alt-gauge .alt-track {
@@ -631,12 +635,32 @@ body.playing #pause-btn {
 
 @media (max-width: 560px) {
   .hud-dash {
-    gap: 10px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
+    gap: 9px;
+    padding: 7px 12px;
+    font-size: 0.72rem;
   }
   .hud-dash .gauge {
-    min-width: 48px;
+    min-width: 44px;
+  }
+  .hud-dash .gauge .g-value {
+    font-size: 0.95rem;
+  }
+  .speed-gauge .dial {
+    width: 46px;
+    height: 29px;
+  }
+  .speed-gauge .g-value {
+    font-size: 0.7rem !important;
+  }
+  .alt-gauge .alt-track {
+    width: 9px;
+    height: 26px;
+  }
+  .meter-track {
+    width: 52px;
+  }
+  .hud-dash .gauge .g-label {
+    font-size: 0.52rem;
   }
   .card {
     padding: 20px;

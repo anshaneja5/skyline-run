@@ -50,8 +50,8 @@ export class Hud {
           <svg viewBox="0 0 100 60" class="dial">
             <path d="M 10 55 A 45 45 0 0 1 90 55" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="7" stroke-linecap="round"/>
             <path d="M 10 55 A 45 45 0 0 1 38 14" fill="none" stroke="rgba(126,242,184,0.6)" stroke-width="7" stroke-linecap="round"/>
-            <line class="needle" x1="50" y1="55" x2="50" y2="18" stroke="#ff9d8a" stroke-width="4" stroke-linecap="round"/>
-            <circle cx="50" cy="55" r="5" fill="#eef4ff"/>
+            <line class="needle" x1="50" y1="55" x2="50" y2="24" stroke="#ff9d8a" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="50" cy="55" r="3.5" fill="#eef4ff"/>
           </svg>
           <div class="g-value speed">0</div>
           <div class="g-label">km/h</div>
