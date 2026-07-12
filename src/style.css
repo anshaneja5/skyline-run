@@ -322,6 +322,12 @@ kbd {
   font-size: 0.7rem;
 }
 
+.gold-hint {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: #9a6b0f;
+}
+
 .contact-link {
   display: block;
   margin-top: 12px;

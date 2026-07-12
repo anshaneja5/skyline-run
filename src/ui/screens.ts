@@ -19,8 +19,13 @@ const fmtDate = (iso: string) =>
 export class Screens {
   private current: HTMLElement | null = null;
   private starCount: number | null = null;
+  private shareHandler: ((btn: HTMLElement) => void) | null = null;
 
   constructor(private root: HTMLElement) {}
+
+  setShareHandler(fn: (btn: HTMLElement) => void) {
+    this.shareHandler = fn;
+  }
 
   /** Live repo star count, shown inside every star button. */
   setStars(count: number | null) {
@@ -53,6 +58,8 @@ export class Screens {
       )
     );
     this.applyStars();
+    const shareBtn = screen.querySelector<HTMLElement>('#share-btn');
+    if (shareBtn) shareBtn.addEventListener('click', () => this.shareHandler?.(shareBtn));
     return screen;
   }
 
@@ -126,6 +133,7 @@ export class Screens {
         <div class="color-legend">${colorLegend}</div>
         <div id="leaderboard-slot"></div>
         ${this.socialRow('Star on GitHub ⭐', 'Follow @vedolos')}
+        <div class="gold-hint">✨ stargazers fly a <b>golden plane</b> and get a ⭐ on the leaderboard</div>
         <a class="contact-link" href="mailto:anshanejaa@gmail.com?subject=Skyline%20Run%20feedback">📬 Feedback or bugs? Email the dev — anshanejaa@gmail.com</a>
       </div>`);
     const input = screen.querySelector<HTMLInputElement>('#username-input')!;
@@ -258,6 +266,7 @@ export class Screens {
         ${this.socialRow('Enjoyed it? Star ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
+          <button class="btn secondary" id="share-btn">Share 📤</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
         </div>
       </div>`);
@@ -280,6 +289,7 @@ export class Screens {
         ${this.socialRow('Survived? Star it ⭐', 'Follow @vedolos')}
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
+          <button class="btn secondary" id="share-btn">Share 📤</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
         </div>
       </div>`);

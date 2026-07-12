@@ -25,13 +25,14 @@ export interface LeaderboardEntry {
   starred?: boolean; // verified stargazer of the repo
 }
 
-export async function fetchStars(): Promise<number | null> {
+export async function fetchStars(user?: string): Promise<{ stars: number | null; starred: boolean }> {
   try {
-    const res = await fetch('/api/stars');
-    if (!res.ok) return null;
-    return (await res.json()).stars ?? null;
+    const res = await fetch(`/api/stars${user ? `?user=${encodeURIComponent(user)}` : ''}`);
+    if (!res.ok) return { stars: null, starred: false };
+    const body = await res.json();
+    return { stars: body.stars ?? null, starred: !!body.starred };
   } catch {
-    return null;
+    return { stars: null, starred: false };
   }
 }
 

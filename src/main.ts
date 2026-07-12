@@ -102,7 +102,9 @@ async function boot() {
   const setProgress = screens.loading();
   setProgress(0.1);
   const config = await fetchConfig();
-  currentUser = config.defaultUser;
+  // shared links open that user's city directly: /?user=whoever
+  const urlUser = new URLSearchParams(location.search).get('user');
+  currentUser = urlUser && /^[a-zA-Z0-9-]{1,39}$/.test(urlUser) ? urlUser : config.defaultUser;
   setProgress(0.2, 'Loading 3D assets…');
   try {
     // assets and contribution data load in parallel; assets failing is fine
@@ -152,10 +154,18 @@ function showStart(errorMsg?: string) {
   fetchLeaderboard().then((entries) => screens.showLeaderboard(entries));
 }
 
+let goldenPlane = false;
+
 async function takeOff(username: string) {
   audio.init(); // user gesture — safe to create AudioContext now
   // gyroscope steering on phones; must be requested inside the tap gesture (iOS)
   if (window.matchMedia('(pointer: coarse)').matches) void tilt.requestEnable();
+
+  // stargazers fly gold ⭐ (also refreshes the live star count)
+  const starredPromise = fetchStars(username).then((s) => {
+    screens.setStars(s.stars);
+    goldenPlane = s.starred;
+  });
 
   if (username.toLowerCase() !== currentUser.toLowerCase() || currentDays.length === 0) {
     const setProgress = screens.loading(`Fetching @${username}'s year of commits…`);
@@ -173,16 +183,20 @@ async function takeOff(username: string) {
   }
   currentUser = username;
   localStorage.setItem('skyline-last-user', username);
+  history.replaceState(null, '', `/?user=${encodeURIComponent(username)}`);
+  await starredPromise.catch(() => {});
 
   stopPreview();
   screens.clear();
   game?.dispose();
   track('take_off', { flown_user: currentUser, demo_data: currentDemo });
-  game = new Game(renderer, currentDays, assets, audio, hud, onGameEnd, onGamePause);
+  game = new Game(renderer, currentDays, assets, audio, hud, onGameEnd, onGamePause, goldenPlane);
   game.start();
 }
 
 function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').RunStats }) {
+  lastEnd = end;
+  lastRating = null;
   const isBest = saveBest(currentUser, end.stats.score);
   track(end.kind === 'crash' ? 'crash' : 'year_survived', {
     score: end.stats.score,
@@ -220,7 +234,10 @@ function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').R
       daysSurvived: end.stats.daysSurvived,
       flightTimeMs: end.stats.flightTimeMs,
     }).then((result) => {
-      if (result) screens.showRank(result.rank, result.rating, result.improved);
+      if (result) {
+        lastRating = result.rating;
+        screens.showRank(result.rank, result.rating, result.improved);
+      }
     });
   }
 }
@@ -245,7 +262,31 @@ function onGamePause(paused: boolean) {
 }
 
 // live star count for all the star buttons
-fetchStars().then((stars) => screens.setStars(stars));
+fetchStars().then((s) => screens.setStars(s.stars));
+
+// share button: native share sheet on phones, clipboard on desktop
+let lastEnd: { kind: 'crash' | 'win'; stats: import('./game/types').RunStats } | null = null;
+let lastRating: number | null = null;
+screens.setShareHandler((btn) => {
+  track('share_click');
+  const s = lastEnd?.stats;
+  const shareUrl = `https://skyline-run.vercel.app/share/${encodeURIComponent(currentUser)}`;
+  const ratingBit = lastRating !== null ? ` (pilot rating ${(lastRating / 100).toFixed(1)}%)` : '';
+  const text =
+    lastEnd?.kind === 'win'
+      ? `I survived a full year of @${currentUser}'s commits in Skyline Run ✈️ Score ${s?.score.toLocaleString()}${ratingBit}. Fly your own GitHub year: ${shareUrl}`
+      : s?.crashedInto
+        ? `I flew into ${s.crashedInto.date} (${s.crashedInto.count} commits) in Skyline Run 💥 Score ${s.score.toLocaleString()}${ratingBit}. Fly your own GitHub year: ${shareUrl}`
+        : `Fly your GitHub year as a city ✈️ ${shareUrl}`;
+  if (navigator.share) {
+    navigator.share({ text }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => {
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => (btn.textContent = 'Share 📤'), 2000);
+    });
+  }
+});
 
 // hello, fellow console-opener
 console.log(

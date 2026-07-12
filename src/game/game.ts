@@ -54,11 +54,12 @@ export class Game {
     private audio: GameAudio,
     private hud: Hud,
     private onEnd: (end: GameEnd) => void,
-    private onPause: (paused: boolean) => void
+    private onPause: (paused: boolean) => void,
+    goldenPlane = false
   ) {
     this.renderer = renderer;
     this.world = buildWorld(days, assets);
-    this.plane = createPlane(window.innerWidth / window.innerHeight, assets);
+    this.plane = createPlane(window.innerWidth / window.innerHeight, assets, goldenPlane);
     this.world.scene.add(this.plane.camera);
 
     this.maxAltitude = Math.max(this.world.maxBuildingHeight * 3, 30);

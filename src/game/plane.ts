@@ -29,11 +29,17 @@ export interface Plane {
 }
 
 /** Cockpit interior from primitives + the Quaternius plane body around the
- *  camera when the asset loaded, plus a spinning propeller. */
-function buildCockpit(assets?: GameAssets | null): { group: THREE.Group; propeller: THREE.Object3D } {
+ *  camera when the asset loaded, plus a spinning propeller. Stargazers of the
+ *  repo fly gold. */
+function buildCockpit(assets?: GameAssets | null, golden = false): { group: THREE.Group; propeller: THREE.Object3D } {
   const g = new THREE.Group();
   const dashMat = new THREE.MeshStandardMaterial({ color: 0x37475f, flatShading: true, roughness: 0.85 });
-  const trimMat = new THREE.MeshStandardMaterial({ color: 0xc93c2c, flatShading: true, roughness: 0.8 });
+  const trimMat = new THREE.MeshStandardMaterial({
+    color: golden ? 0xf2b93a : 0xc93c2c,
+    flatShading: true,
+    roughness: golden ? 0.4 : 0.8,
+    metalness: golden ? 0.55 : 0,
+  });
   const strutMat = new THREE.MeshStandardMaterial({ color: 0x2b3a55, flatShading: true });
 
   // dashboard: slim sloped panel at the bottom of the view
@@ -85,6 +91,19 @@ function buildCockpit(assets?: GameAssets | null): { group: THREE.Group; propell
     const model = assets.plane.clone();
     // SmallPlane spans roughly x±4.3, y −1..1.4, z −5.7..3.1 (nose toward −z)
     model.position.set(0, -1.25, 0.4);
+    if (golden) {
+      // clone materials (they're shared with the cached asset) and go gold
+      model.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
+        if (mat.name === 'Body') mat.color.setHex(0xf2b93a);
+        if (mat.name === 'Bottom') mat.color.setHex(0xfff0c4);
+        mat.metalness = 0.5;
+        mat.roughness = 0.45;
+        mesh.material = mat;
+      });
+    }
     g.add(model);
     noseZ = -4.6;
   } else {
@@ -130,9 +149,9 @@ function buildCockpit(assets?: GameAssets | null): { group: THREE.Group; propell
   return { group: g, propeller };
 }
 
-export function createPlane(aspect: number, assets?: GameAssets | null): Plane {
+export function createPlane(aspect: number, assets?: GameAssets | null, golden = false): Plane {
   const camera = new THREE.PerspectiveCamera(BASE_FOV, aspect, 0.1, 1200);
-  const { group: cockpit, propeller } = buildCockpit(assets);
+  const { group: cockpit, propeller } = buildCockpit(assets, golden);
   camera.add(cockpit);
 
   const position = new THREE.Vector3(0, 8, 40);
