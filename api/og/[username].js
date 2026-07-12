@@ -22,10 +22,12 @@ const e = (type, props = {}, ...children) => ({
   props: { ...props, children: children.length <= 1 ? children[0] : children },
 });
 
-const barColor = (count) => {
-  if (count <= 4) return '#f5e6c4';
-  if (count <= 12) return '#f0a93a';
-  if (count <= 24) return '#f2705a';
+// color relative to the user's own busiest week so every graph shows the ramp
+const barColor = (count, max) => {
+  const r = count / Math.max(max, 1);
+  if (r <= 0.25) return '#f5e6c4';
+  if (r <= 0.5) return '#f0a93a';
+  if (r <= 0.75) return '#f2705a';
   return '#c93c2c';
 };
 
@@ -69,7 +71,7 @@ export default async function handler(req) {
       style: {
         width: '17px',
         height: `${Math.max((count / maxWeek) * 300, 6)}px`,
-        background: barColor(count),
+        background: barColor(count, maxWeek),
         borderRadius: '3px 3px 0 0',
         marginRight: '4px',
       },
