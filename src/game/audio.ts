@@ -94,11 +94,15 @@ export class GameAudio {
 
   // ---------- one-shots ----------
 
+  private cachedNoise: AudioBuffer | null = null;
+
   private noiseBuffer(): AudioBuffer {
+    if (this.cachedNoise) return this.cachedNoise;
     const ctx = this.ctx!;
     const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    this.cachedNoise = buf;
     return buf;
   }
 
@@ -175,6 +179,32 @@ export class GameAudio {
   crash() {
     if (!this.ctx || !this.master) return;
     const ctx = this.ctx;
+    // sub-bass explosion boom
+    const boom = ctx.createOscillator();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(95, ctx.currentTime);
+    boom.frequency.exponentialRampToValueAtTime(24, ctx.currentTime + 0.9);
+    const boomGain = ctx.createGain();
+    boomGain.gain.setValueAtTime(1.1, ctx.currentTime);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
+    boom.connect(boomGain).connect(this.master);
+    boom.start();
+    boom.stop(ctx.currentTime + 1.1);
+    // delayed debris crackles
+    for (let i = 0; i < 5; i++) {
+      const t0 = ctx.currentTime + 0.15 + i * 0.13 + Math.random() * 0.05;
+      const crack = ctx.createBufferSource();
+      crack.buffer = this.noiseBuffer();
+      const cf = ctx.createBiquadFilter();
+      cf.type = 'bandpass';
+      cf.frequency.value = 900 + Math.random() * 2200;
+      const cg = ctx.createGain();
+      cg.gain.setValueAtTime(0.18, t0);
+      cg.gain.exponentialRampToValueAtTime(0.001, t0 + 0.12);
+      crack.connect(cf).connect(cg).connect(this.master);
+      crack.start(t0);
+      crack.stop(t0 + 0.13);
+    }
     // muffled thud
     const thud = ctx.createOscillator();
     thud.type = 'sine';

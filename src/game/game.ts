@@ -7,6 +7,7 @@ import { CollisionSystem } from './collisions';
 import { Scoring, NEAR_MISS_DISTANCE } from './scoring';
 import { Input } from './input';
 import { tilt } from './tilt';
+import { Explosion } from './explosion';
 import { GameAudio } from './audio';
 import type { Hud } from '../ui/hud';
 
@@ -35,6 +36,11 @@ export class Game {
   private comboCeiling: number;
   private lastMonthKey: string;
   private reducedMotion: boolean;
+  // crash cinematics
+  private crashing = false;
+  private crashElapsed = 0;
+  private explosion: Explosion;
+  private pendingEnd: GameEnd | null = null;
   // adaptive quality: 0 = full, 1 = 1x pixel ratio, 2 = also no shadows
   private perfTier = 0;
   private perfFrames = 0;
@@ -58,6 +64,10 @@ export class Game {
     this.maxAltitude = Math.max(this.world.maxBuildingHeight * 3, 30);
     this.comboCeiling = this.world.maxBuildingHeight + 4;
     this.collisions = new CollisionSystem(this.world.buildings, this.comboCeiling);
+    // dormant explosion lives in the scene from the start so its shaders
+    // compile during loading, not on the crash frame
+    this.explosion = new Explosion();
+    this.world.scene.add(this.explosion.group);
     this.input = new Input(document.body);
     this.lastMonthKey = days[0].date.slice(0, 7);
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -71,8 +81,14 @@ export class Game {
     this.plane.camera.updateProjectionMatrix();
   };
 
+  private warmupFrames = 3;
+
   start() {
     tilt.recalibrate(); // current phone angle becomes level flight
+    this.renderer.compile(this.world.scene, this.plane.camera); // pre-warm mesh shaders
+    // sprites aren't covered by compile() — render them near-invisibly for a few frames
+    const p = this.plane.position;
+    this.explosion.warmup(new THREE.Vector3(p.x, p.y, p.z - 6));
     this.audio.startEngine();
     this.audio.startMusic();
     this.lastTime = performance.now();
@@ -127,6 +143,29 @@ export class Game {
           }
         }
       }
+    }
+
+    // crash cinematic: tumbling camera, explosion, then the crash screen
+    if (this.crashing) {
+      this.crashElapsed += rawDt;
+      this.explosion?.update(rawDt);
+      this.world.update(rawDt, this.elapsed);
+      const p = this.plane.position;
+      p.y = Math.max(p.y - rawDt * 4, 2.0); // dropping out of the sky
+      p.z -= rawDt * 2; // momentum carries the wreck forward
+      this.plane.camera.position.set(p.x, p.y, p.z);
+      if (!this.reducedMotion) {
+        // bank hard but settle before the crash card, so the frozen
+        // backdrop shows the burning wreck instead of cockpit struts
+        const settle = Math.max(1 - this.crashElapsed / 1.1, 0);
+        this.plane.camera.rotation.z += rawDt * 1.5 * settle;
+        this.plane.camera.rotation.x += rawDt * 0.35 * settle;
+      }
+      this.renderer.render(this.world.scene, this.plane.camera);
+      if (this.crashElapsed >= (this.reducedMotion ? 0.7 : 1.6)) {
+        this.endRun(this.pendingEnd!);
+      }
+      return;
     }
 
     if (this.input.consumePause()) {
@@ -196,7 +235,14 @@ export class Game {
     if (result.crashed) {
       const b = result.crashed;
       this.audio.crash();
-      this.endRun({ kind: 'crash', stats: this.stats({ date: b.date, count: b.count }) });
+      this.audio.stopEngine(); // engine dies with the plane
+      this.audio.stopMusic();
+      this.audio.setTimeScale(1);
+      this.explosion.reset(new THREE.Vector3(p.x, p.y, p.z - 1.2));
+      this.crashing = true;
+      this.crashElapsed = 0;
+      this.pendingEnd = { kind: 'crash', stats: this.stats({ date: b.date, count: b.count }) };
+      this.hud.setSlowmo(false);
       return;
     }
 
@@ -228,6 +274,7 @@ export class Game {
     });
 
     this.renderer.render(this.world.scene, this.plane.camera);
+    if (this.warmupFrames > 0 && --this.warmupFrames === 0) this.explosion.hide();
   };
 
   private endRun(end: GameEnd) {
@@ -251,6 +298,7 @@ export class Game {
   dispose() {
     this.ended = true;
     cancelAnimationFrame(this.raf);
+    this.explosion.dispose();
     window.removeEventListener('resize', this.onResize);
     this.input.dispose();
     this.audio.stopEngine();

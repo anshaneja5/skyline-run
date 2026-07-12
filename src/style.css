@@ -56,14 +56,16 @@ body {
 }
 
 .card {
-  background: var(--panel-bg);
+  position: relative;
+  /* no backdrop-filter: blurring over the WebGL canvas costs a ~400ms
+     compositor stall the first time a card mounts (the "crash hang") */
+  background: rgba(255, 255, 255, 0.96);
   border-radius: var(--panel-radius);
   box-shadow: var(--panel-shadow);
   padding: 28px 32px;
   max-width: 440px;
   width: 100%;
   text-align: center;
-  backdrop-filter: blur(6px);
   max-height: 92vh;
   overflow-y: auto;
 }
@@ -268,6 +270,16 @@ kbd {
 .gh-link:hover {
   background: #3d5170;
   transform: translateY(-1px);
+}
+
+.gh-mini {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  margin: 0;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  gap: 5px;
 }
 
 .demo-badge {
