@@ -124,15 +124,18 @@ export class Screens {
     const rows = entries
       .slice(0, 5)
       .map(
-        (e, i) => `<div class="lb-row">
+        (e, i) => `<a class="lb-row" href="https://github.com/${encodeURIComponent(e.username)}"
+            target="_blank" rel="noopener" title="View @${e.username} on GitHub">
           <span class="lb-rank">${medals[i] ?? i + 1}</span>
+          <img class="lb-avatar" src="https://github.com/${encodeURIComponent(e.username)}.png?size=48"
+            alt="" loading="lazy" onerror="this.style.visibility='hidden'" />
           <span class="lb-name">${e.username}</span>
           ${e.win ? '<span class="lb-win" title="survived the year">🏁</span>' : ''}
           <span class="lb-score">${e.score.toLocaleString()}</span>
-        </div>`
+        </a>`
       )
       .join('');
-    slot.innerHTML = `<div class="leaderboard"><div class="lb-title">🏆 Top pilots</div>${rows}</div>`;
+    slot.innerHTML = `<div class="leaderboard"><div class="lb-title">🌍 Global leaderboard</div>${rows}</div>`;
   }
 
   setStartError(msg: string) {
