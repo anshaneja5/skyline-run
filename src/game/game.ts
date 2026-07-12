@@ -233,6 +233,7 @@ export class Game {
   private endRun(end: GameEnd) {
     this.ended = true;
     cancelAnimationFrame(this.raf);
+    this.input.dispose(); // stop intercepting touches so end-screen buttons tap cleanly
     this.audio.stopEngine();
     this.audio.stopMusic();
     this.audio.setTimeScale(1);

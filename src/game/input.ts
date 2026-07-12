@@ -39,7 +39,14 @@ export class Input {
     this.keys.delete(e.code);
   };
 
+  /** Touches on buttons/screens must stay native so taps still click. */
+  private isUiTouch(e: TouchEvent): boolean {
+    const target = e.target as HTMLElement | null;
+    return !!target?.closest?.('.screen, button, input, a');
+  }
+
   private onTouchStart = (e: TouchEvent) => {
+    if (this.isUiTouch(e)) return;
     e.preventDefault();
     if (e.touches.length >= 2) {
       this.touchBoostToggle = !this.touchBoostToggle;
@@ -51,6 +58,7 @@ export class Input {
   };
 
   private onTouchMove = (e: TouchEvent) => {
+    if (this.isUiTouch(e)) return;
     e.preventDefault();
     for (const t of Array.from(e.changedTouches)) {
       if (this.activeTouches.has(t.identifier))
