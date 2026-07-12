@@ -140,9 +140,8 @@ function yearStats() {
 function showStart(errorMsg?: string) {
   screens.start({
     defaultUser: currentUser,
-    // each visitor's own last-flown name — never someone else's city by default,
-    // so scores stop landing under the site owner's username
-    lastUser: localStorage.getItem('skyline-last-user') || '',
+    // returning visitors get their own last-flown name; first-timers get the default
+    lastUser: localStorage.getItem('skyline-last-user') || currentUser,
     demo: currentDemo,
     bestScore: getBest(currentUser),
     yearStats: yearStats(),
