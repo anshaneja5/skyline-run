@@ -322,6 +322,20 @@ kbd {
   font-size: 0.7rem;
 }
 
+.contact-link {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.74rem;
+  color: var(--ink);
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.contact-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .star-nudge {
   margin: 12px 0 0;
   padding: 10px 16px;

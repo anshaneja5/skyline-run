@@ -126,6 +126,7 @@ export class Screens {
         <div class="color-legend">${colorLegend}</div>
         <div id="leaderboard-slot"></div>
         ${this.socialRow('Star on GitHub ⭐', 'Follow @vedolos')}
+        <a class="contact-link" href="mailto:anshanejaa@gmail.com?subject=Skyline%20Run%20feedback">📬 Feedback or bugs? Email the dev — anshanejaa@gmail.com</a>
       </div>`);
     const input = screen.querySelector<HTMLInputElement>('#username-input')!;
     const btn = screen.querySelector<HTMLButtonElement>('#takeoff-btn')!;
