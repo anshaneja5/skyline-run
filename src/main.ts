@@ -1,6 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
-import { fetchConfig, fetchContributions } from './api';
+import { fetchConfig, fetchContributions, fetchLeaderboard, submitScore } from './api';
 import type { ContributionDay } from './game/types';
 import { buildWorld, type World } from './game/world';
 import { loadAssets, type GameAssets } from './game/assets';
@@ -147,6 +147,7 @@ function showStart(errorMsg?: string) {
   });
   if (errorMsg) screens.setStartError(errorMsg);
   if (!previewWorld && currentDays.length) startPreview(currentDays);
+  fetchLeaderboard().then((entries) => screens.showLeaderboard(entries));
 }
 
 async function takeOff(username: string) {
@@ -202,6 +203,18 @@ function onGameEnd(end: { kind: 'crash' | 'win'; stats: import('./game/types').R
     screens.crash(end.stats, isBest, week, retry, menu);
   } else {
     screens.win(end.stats, isBest, retry, menu);
+  }
+
+  // global leaderboard (skip demo data — those runs aren't comparable)
+  if (!currentDemo && end.stats.score > 0) {
+    submitScore(currentUser, {
+      score: end.stats.score,
+      bestCombo: end.stats.bestCombo,
+      daysSurvived: end.stats.daysSurvived,
+      flightTimeMs: end.stats.flightTimeMs,
+    }).then((result) => {
+      if (result) screens.showRank(result.rank, result.improved);
+    });
   }
 }
 

@@ -15,6 +15,47 @@ export async function fetchConfig(): Promise<{ defaultUser: string; demo: boolea
   }
 }
 
+export interface LeaderboardEntry {
+  username: string;
+  score: number;
+  bestCombo?: number;
+  pct?: number;
+  win?: boolean;
+}
+
+export interface SubmitResult {
+  rank: number;
+  best: number;
+  improved: boolean;
+}
+
+export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
+  try {
+    const res = await fetch('/api/leaderboard');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function submitScore(
+  username: string,
+  run: { score: number; bestCombo: number; daysSurvived: number; flightTimeMs: number }
+): Promise<SubmitResult | null> {
+  try {
+    const res = await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, ...run }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchContributions(username: string): Promise<ContributionResult> {
   const res = await fetch(`/api/contributions/${encodeURIComponent(username)}`);
   if (!res.ok) {

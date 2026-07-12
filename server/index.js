@@ -3,7 +3,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// reuse the serverless handlers so dev and prod behave identically
+const { default: scoreHandler } = await import('../api/score.js');
+const { default: leaderboardHandler } = await import('../api/leaderboard.js');
+
 const app = express();
+app.use(express.json());
+app.post('/api/score', (req, res) => scoreHandler(req, res));
+app.get('/api/leaderboard', (req, res) => leaderboardHandler(req, res));
 const PORT = process.env.PORT || 3001;
 const TOKEN = process.env.GITHUB_TOKEN;
 const DEFAULT_USER = process.env.DEFAULT_USER || 'anshaneja5';

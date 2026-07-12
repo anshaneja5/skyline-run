@@ -1,4 +1,5 @@
 import type { RunStats } from '../game/types';
+import type { LeaderboardEntry } from '../api';
 import { PALETTE_CSS, BUCKET_LABELS } from '../game/world';
 import { track } from '../analytics';
 
@@ -95,6 +96,7 @@ export class Screens {
         </div>
         <div class="touch-hint">📱 Tilt your phone to steer &amp; climb (hold it comfy — that angle becomes level).<br/>Or touch: left/right half steers, top/bottom third climbs/dives. Two-finger tap = boost.</div>
         <div class="color-legend">${colorLegend}</div>
+        <div id="leaderboard-slot"></div>
         ${this.ghLink('Star on GitHub — anshaneja5/skyline-run')}
       </div>`);
     const input = screen.querySelector<HTMLInputElement>('#username-input')!;
@@ -112,6 +114,25 @@ export class Screens {
       if (e.key === 'Enter') go();
       e.stopPropagation();
     });
+  }
+
+  /** Fill the start screen's leaderboard slot once data arrives. */
+  showLeaderboard(entries: LeaderboardEntry[]) {
+    const slot = this.current?.querySelector<HTMLElement>('#leaderboard-slot');
+    if (!slot || !entries.length) return;
+    const medals = ['🥇', '🥈', '🥉'];
+    const rows = entries
+      .slice(0, 5)
+      .map(
+        (e, i) => `<div class="lb-row">
+          <span class="lb-rank">${medals[i] ?? i + 1}</span>
+          <span class="lb-name">${e.username}</span>
+          ${e.win ? '<span class="lb-win" title="survived the year">🏁</span>' : ''}
+          <span class="lb-score">${e.score.toLocaleString()}</span>
+        </div>`
+      )
+      .join('');
+    slot.innerHTML = `<div class="leaderboard"><div class="lb-title">🏆 Top pilots</div>${rows}</div>`;
   }
 
   setStartError(msg: string) {
@@ -155,6 +176,13 @@ export class Screens {
     return `<div class="week-chart">${bars}</div>`;
   }
 
+  /** Global-rank line on end screens, filled in when the submit resolves. */
+  showRank(rank: number, improved: boolean) {
+    const el = this.current?.querySelector<HTMLElement>('#rank-slot');
+    if (!el) return;
+    el.innerHTML = `<div class="rank-badge">🌍 Global rank <b>#${rank}</b>${improved ? '' : ' (your best run)'}</div>`;
+  }
+
   crash(
     stats: RunStats,
     isBest: boolean,
@@ -173,6 +201,7 @@ export class Screens {
         </div>
         ${this.statsGrid(stats)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
+        <div id="rank-slot"></div>
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
@@ -193,6 +222,7 @@ export class Screens {
         <p class="subtitle">All ${stats.totalDays} days, start to finish.</p>
         ${this.statsGrid(stats, timeStat)}
         ${isBest ? '<div class="demo-badge">🏆 New best score!</div>' : ''}
+        <div id="rank-slot"></div>
         <div>
           <button class="btn" id="retry-btn">Fly again</button>
           <button class="btn secondary" id="menu-btn">Menu</button>
