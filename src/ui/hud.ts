@@ -26,6 +26,7 @@ export class Hud {
   private dateEl!: HTMLElement;
   private speedEl!: HTMLElement;
   private needleEl!: SVGLineElement;
+  private dialFillEl!: SVGPathElement;
   private altFill!: HTMLElement;
   private scoreEl!: HTMLElement;
   private progressFill!: HTMLElement;
@@ -49,8 +50,9 @@ export class Hud {
         <div class="gauge speed-gauge">
           <svg viewBox="0 0 100 60" class="dial">
             <path d="M 10 55 A 45 45 0 0 1 90 55" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="7" stroke-linecap="round"/>
-            <path d="M 10 55 A 45 45 0 0 1 38 14" fill="none" stroke="rgba(126,242,184,0.6)" stroke-width="7" stroke-linecap="round"/>
-            <line class="needle" x1="50" y1="55" x2="50" y2="24" stroke="#ff9d8a" stroke-width="3.5" stroke-linecap="round"/>
+            <path class="dial-fill" d="M 10 55 A 45 45 0 0 1 90 55" fill="none" stroke="#7ef2b8" stroke-width="7"
+              stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+            <line class="needle" x1="50" y1="55" x2="50" y2="24" stroke="#eef4ff" stroke-width="3.5" stroke-linecap="round"/>
             <circle cx="50" cy="55" r="3.5" fill="#eef4ff"/>
           </svg>
           <div class="g-value speed">0</div>
@@ -70,6 +72,7 @@ export class Hud {
     this.dateEl = this.el.querySelector('.hud-date')!;
     this.speedEl = this.el.querySelector('.speed')!;
     this.needleEl = this.el.querySelector<SVGLineElement>('.needle')!;
+    this.dialFillEl = this.el.querySelector<SVGPathElement>('.dial-fill')!;
     this.altFill = this.el.querySelector('.alt-fill')!;
     this.scoreEl = this.el.querySelector('.score')!;
     this.progressFill = this.el.querySelector('.progress-track .fill')!;
@@ -106,9 +109,13 @@ export class Hud {
   update(f: HudFrame) {
     this.dateEl.textContent = fmtDate(f.date);
     this.speedEl.textContent = String(f.speed);
-    // needle sweeps -80°..80° across 0..MAX_SPEED
-    const angle = -80 + Math.min(f.speed / MAX_SPEED_KMH, 1) * 160;
+    // needle sweeps -80°..80° and the arc fills to match it
+    const frac = Math.min(f.speed / MAX_SPEED_KMH, 1);
+    const angle = -80 + frac * 160;
     this.needleEl.setAttribute('transform', `rotate(${angle.toFixed(1)} 50 55)`);
+    // the arc spans 180° but the needle stops at 160° — scale so they line up
+    this.dialFillEl.setAttribute('stroke-dashoffset', String(100 - (frac * 160 + 10) / 1.8));
+    this.dialFillEl.setAttribute('stroke', frac < 0.62 ? '#7ef2b8' : frac < 0.85 ? '#ffd75e' : '#ff9d8a');
     this.altFill.style.height = `${(f.altitude * 100).toFixed(0)}%`;
     this.scoreEl.textContent = f.score.toLocaleString();
     this.progressFill.style.width = `${(f.progress * 100).toFixed(1)}%`;
