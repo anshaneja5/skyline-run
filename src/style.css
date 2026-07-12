@@ -322,6 +322,15 @@ kbd {
   font-size: 0.7rem;
 }
 
+.linus-hint {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #eef4fb;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
 .gold-hint {
   margin-top: 8px;
   font-size: 0.74rem;

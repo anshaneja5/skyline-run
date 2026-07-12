@@ -120,6 +120,11 @@ export class Screens {
         ${opts.demo ? '<div class="demo-badge">⚠ demo data — set GITHUB_TOKEN in .env for real contributions</div><br/>' : ''}
         ${profile}
         <input type="text" id="username-input" value="${opts.lastUser}" placeholder="your GitHub username" spellcheck="false" autocomplete="off" />
+        ${
+          opts.lastUser.toLowerCase() === 'torvalds'
+            ? `<div class="linus-hint">🐧 Default city: <b>Linus Torvalds' year</b>. Survive the kernel if you can — or type your own username.</div>`
+            : ''
+        }
         <div class="error-text" id="start-error"></div>
         <button class="btn" id="takeoff-btn">Take off ✈</button>
         ${opts.bestScore !== null ? `<div class="best-score">Best score: <b>${opts.bestScore.toLocaleString()}</b></div>` : ''}

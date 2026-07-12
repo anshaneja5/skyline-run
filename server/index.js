@@ -15,7 +15,7 @@ app.get('/api/leaderboard', (req, res) => leaderboardHandler(req, res));
 app.get('/api/stars', (req, res) => starsHandler(req, res));
 const PORT = process.env.PORT || 3001;
 const TOKEN = process.env.GITHUB_TOKEN;
-const DEFAULT_USER = process.env.DEFAULT_USER || 'anshaneja5';
+const DEFAULT_USER = process.env.DEFAULT_USER || 'torvalds';
 
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 const cache = new Map(); // username -> { at, data }
