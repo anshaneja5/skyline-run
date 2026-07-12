@@ -1,96 +1,136 @@
+<div align="center">
+
 # ✈️ Skyline Run
 
-A first-person flying game through your real GitHub contribution history. Every day
-with commits becomes a building — more commits, taller building. The flight starts at
-your first contribution day (12 months ago) and ends today. Crash into a building and
-you'll see exactly which date and commit count killed you. Survive the whole year to win.
+**Fly a plane through a year of your GitHub commits.**
 
-![Low-poly daytime city built from GitHub contributions](docs/screenshot.jpg)
+Every day you committed becomes a building. Busy days become skyscrapers.
+Crash into one and it tells you exactly which date killed you.
 
-## How it plays
+**[▶ Play it live](https://skyline-run.vercel.app)**
 
-- **Cockpit view** with banking, pitch, idle bobbing, and a spinning propeller.
-- **7 lanes** across the road, one per weekday (Sunday leftmost → Saturday rightmost).
-- **Near-miss bonus**: pass within 1.5 units of a building for `commits × 3` points and
-  chain a combo multiplier (up to x8). Flying high above the city awards nothing —
-  the points live down in the canyon.
-- **Boost** (Shift) and **slow-mo** (Space) share a meter that refills over time.
-- A pulsing beacon marks your busiest day of the year, and the city is alive —
-  pedestrians on the sidewalks, crow flocks overhead, dense blocks beyond the road.
-- Month boundaries are race-checkpoint banners with a ding.
-- Best score per username is stored in `localStorage`.
+![Cockpit view flying through the commit city](docs/flight.jpg)
 
-### Controls
+</div>
+
+---
+
+## What is this?
+
+Skyline Run turns your GitHub contribution graph into a 3D city and puts you in the
+cockpit of a small plane flying through it — starting at your first contribution day
+twelve months ago and ending today.
+
+- **One day = one building.** Height is exact: `2 + commits × 1.2` units. A 40-commit
+  day is a tower; a lazy Sunday is a gap you can dive through.
+- **Seven lanes, one per weekday.** Sunday is the leftmost lane, Saturday the
+  rightmost — so your weekly rhythm becomes the city's shape. Month boundaries are
+  race-checkpoint arches.
+- **Crashing is informative.** The crash screen names the date, its commit count, and
+  a mini bar-chart of that week. Blame your past self.
+- **Surviving the whole year is the win.** The scoring pushes you to do it the
+  dangerous way.
+
+Type any GitHub username on the start screen to fly someone else's year instead.
+
+![Start screen with the city preview](docs/start.jpg)
+
+## How scoring works
+
+Flying safely above the city earns **nothing**. The points live down in the canyon:
+
+| Action | Points |
+| --- | --- |
+| Passing a building below rooftop level | its commit count |
+| **Near-miss** (within 1.5 units of a wall or roof) | commit count × 3 |
+| Chaining near-misses within 3 s | combo multiplier ×2, ×3 … up to **×8** |
+| Cruising high above everything | 0 — and your combo resets |
+
+**Boost** (1.6× speed, wider FOV) and **slow-mo** (0.45× time, tape-warped audio)
+share one meter that refills over time. Best score per username is kept in
+`localStorage`. A pulsing beacon marks your busiest day of the year.
+
+## Controls
 
 | Input | Action |
 | --- | --- |
-| `A`/`D` or `←`/`→` | steer (with banking roll) |
-| `W`/`S` or `↑`/`↓` | climb / dive |
-| `Shift` (hold) | boost — 1.6× speed, FOV widens |
-| `Space` (hold) | slow-mo — 0.45× time |
+| `A` `D` / `←` `→` | steer, with banking roll |
+| `W` `S` / `↑` `↓` | climb / dive |
+| `Shift` (hold) | boost |
+| `Space` (hold) | slow-mo |
 | `Esc` / `P` | pause |
-| Tilt (phones) | roll the phone to steer, pitch it like a yoke to climb/dive — the angle you hold it at on take-off becomes level flight |
-| Touch | left/right half steers, top/bottom third climbs/dives, two-finger tap toggles boost |
+| 📱 **Tilt** | roll the phone to steer, pitch it like a yoke to climb — the angle you hold it at on take-off becomes level flight |
+| 📱 Touch | left/right half steers, top/bottom third climbs/dives, two-finger tap toggles boost |
 
-## Setup
+## Running it locally
 
-1. **Create a GitHub token** (classic): <https://github.com/settings/tokens> →
-   *Generate new token (classic)* → the `read:user` scope is enough.
+**1. Get a GitHub token** — [create a classic token](https://github.com/settings/tokens)
+with just the `read:user` scope.
 
-2. **Configure the environment:**
+**2. Configure:**
 
-   ```sh
-   cp .env.example .env
-   # edit .env and paste your token:
-   # GITHUB_TOKEN=ghp_...
-   # DEFAULT_USER=anshaneja5
-   ```
-
-   Without a token the backend serves clearly-labeled deterministic demo data, so the
-   game still runs.
-
-3. **Install & run:**
-
-   ```sh
-   npm install
-   npm run dev
-   ```
-
-   This starts the Express proxy on `:3001` and Vite on `:5173` (which proxies `/api`).
-   Open <http://localhost:5173>.
-
-## Architecture
-
-```
-server/index.js        Express proxy — GitHub GraphQL, 1h in-memory cache per user,
-                       clean 404 for unknown users, token never reaches the browser
-src/
-  api.ts               frontend API client
-  main.ts              app flow: loading → start (cinematic orbit) → flight → crash/win
-  game/
-    world.ts           city generation: merged facade-textured towers (one draw call),
-                       road, background skyline, banners, clouds, trees, lighting
-    plane.ts           cockpit, flight physics, camera feel (FOV, shake, bobbing)
-    collisions.ts      moving-cursor AABB checks (~2 buildings tested per frame)
-    scoring.ts         near-miss detection, combo chain, score
-    audio.ts           procedural Web Audio: engine, whoosh, chimes, crash, music
-    input.ts           keyboard + touch
-    game.ts            game loop orchestration
-    assets.ts          GLB loading with graceful procedural fallbacks
-  ui/
-    hud.ts             date/speed/score/progress/boost meter, score popups
-    screens.ts         start, pause, crash, win, error screens
-public/assets/models   CC0 models (see CREDITS.md)
+```sh
+cp .env.example .env   # then paste your token into GITHUB_TOKEN
 ```
 
-- Buildings are data: their heights encode exact commit counts (`2 + count × 1.2`),
-  so the towers are procedural geometry merged into a single mesh with a generated
-  window-facade texture. Real CC0 models (Quaternius) fill in the plane, the
-  background skyline, and rooftop props.
-- The game runs even with zero downloaded assets — everything has a primitive fallback.
-- `prefers-reduced-motion` disables camera shake and idle bobbing.
+**3. Run:**
 
-## Notes
+```sh
+npm install
+npm run dev            # Express proxy on :3001 + Vite on :5173
+```
 
-- Contribution data is cached in memory for 1 hour per username.
-- All bundled assets are CC0 — sources in [CREDITS.md](CREDITS.md).
+Open <http://localhost:5173>. No token? The game still runs on clearly-labeled demo
+data so you can try it before setting anything up.
+
+## How it's built
+
+**Stack:** Vite + vanilla TypeScript + Three.js. No framework, no game engine.
+A tiny API layer keeps the GitHub token server-side — the browser never sees it.
+
+```
+server/index.js         local dev proxy (Express) — GitHub GraphQL, 1 h cache/user
+api/                    the same proxy as Vercel serverless functions
+src/game/
+  world.ts              city generation, lighting, sky, traffic, pedestrians, birds
+  plane.ts              cockpit, flight physics, camera feel
+  collisions.ts         moving-cursor AABB checks (~2 buildings tested per frame)
+  scoring.ts            near-miss detection and combo chain
+  audio.ts              procedural Web Audio: engine, whooshes, chimes, music
+  input.ts / tilt.ts    keyboard, touch zones, gyroscope steering
+  assets.ts             GLB loading with procedural fallbacks
+src/ui/                 HUD (instrument cluster), start/pause/crash/win screens
+public/assets/models    CC0 models, ~6.7 MB total
+```
+
+Details that matter:
+
+- **The data buildings are one draw call.** All ~250 towers are merged into a single
+  mesh with a procedurally generated window-facade texture, per-building tint, and
+  fake ambient occlusion baked into vertex colors. Their dimensions are data — models
+  would lie, boxes don't.
+- **Everything else is instanced** — background city blocks, trees, bushes, cars,
+  pedestrians, crows. The whole scene stays at 60 fps on a mid-range laptop, and an
+  adaptive quality system steps down pixel ratio, then shadows, if a weaker device
+  can't hold ~45 fps.
+- **The game runs with zero downloaded assets.** Every model has a primitive
+  fallback; all sound is synthesized with the Web Audio API at runtime.
+- **`prefers-reduced-motion`** disables camera shake, idle bobbing, and speed-line
+  effects.
+
+## Deploying your own
+
+The repo deploys to Vercel as-is: the Vite build is served statically and `api/`
+becomes serverless functions. Set two environment variables in your Vercel project:
+
+| Variable | Value |
+| --- | --- |
+| `GITHUB_TOKEN` | classic token, `read:user` scope |
+| `DEFAULT_USER` | username pre-filled on the start screen |
+
+## Credits
+
+All bundled 3D assets are **CC0** by [Quaternius](https://quaternius.com) — the
+plane, city buildings, trees, and props. Full list in [CREDITS.md](CREDITS.md).
+Sound and music are procedural, so nothing else to credit — except your commit
+history, which did all the level design.

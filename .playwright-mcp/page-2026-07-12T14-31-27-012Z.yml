@@ -1,0 +1,8 @@
+- generic [active] [ref=f32e1]:
+  - generic:
+    - button "🔊" [ref=f32e3] [cursor=pointer]
+    - generic [ref=f32e5]:
+      - heading "✈️ Skyline Run" [level=1] [ref=f32e6]:
+        - generic [ref=f32e7]: ✈️
+        - text: Skyline Run
+      - paragraph [ref=f32e8]: Loading 3D assets…
