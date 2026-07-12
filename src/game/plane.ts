@@ -5,7 +5,7 @@ export const BASE_SPEED = 26;
 export const BOOST_MULT = 1.6;
 export const STEER_SPEED = 22;
 export const CLIMB_SPEED = 14;
-export const MIN_ALT = 1.6;
+export const MIN_ALT = 2.3; // keeps the plane model's belly above the asphalt
 
 const BASE_FOV = 65;
 const BOOST_FOV = 78;
@@ -160,7 +160,9 @@ export function createPlane(aspect: number, assets?: GameAssets | null): Plane {
       this.velocityY = THREE.MathUtils.damp(this.velocityY, input.climb * CLIMB_SPEED, 6, dt);
       position.x += this.velocityX * dt;
       position.y += this.velocityY * dt;
-      position.x = THREE.MathUtils.clamp(position.x, -21, 21); // keep the plane over the city
+      // clamp inside the outer buildings' footprint (they span to ±20.1) so
+      // hugging the edge rail is a crash, not a free ride
+      position.x = THREE.MathUtils.clamp(position.x, -19.5, 19.5);
       position.y = THREE.MathUtils.clamp(position.y, MIN_ALT, maxAlt);
 
       // banking + pitch attitude
