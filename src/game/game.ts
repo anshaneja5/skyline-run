@@ -62,7 +62,12 @@ export class Game {
     this.plane = createPlane(window.innerWidth / window.innerHeight, assets, goldenPlane);
     this.world.scene.add(this.plane.camera);
 
-    this.maxAltitude = Math.max(this.world.maxBuildingHeight * 3, 30);
+    // altitude ceiling from the 85th-percentile building, not the outlier
+    // tallest: most towers can be hopped, but the busiest ~15% of days are
+    // walls you must steer around — no free cruise above the city
+    const heights = this.world.buildings.map((b) => b.height).sort((a, b) => a - b);
+    const p85 = heights[Math.floor(heights.length * 0.85)] ?? 10;
+    this.maxAltitude = Math.max(p85 + 2.5, 14);
     this.comboCeiling = this.world.maxBuildingHeight + 4;
     this.collisions = new CollisionSystem(this.world.buildings, this.comboCeiling);
     // dormant explosion lives in the scene from the start so its shaders
